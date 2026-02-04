@@ -1,0 +1,7 @@
+{
+  "name": "Valentine's Heartfelt Whisper",
+  "description": "An enchanting, AI-powered experience designed to ask that special someone to be your valentine, featuring personalized romantic ideas and a love-expert chatbot.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
