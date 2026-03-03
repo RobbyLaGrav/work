@@ -1,108 +1,162 @@
-# AI Phone Agent SaaS - Technical Architecture
+# Freelancer Tax AI - Technical Architecture
 
 ## System Overview
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        FRONTEND (React)                         │
-│  ┌────────────┐ ┌──────────────┐ ┌──────────────┐             │
-│  │    Auth    │ │  Dashboard   │ │   Settings   │             │
-│  └────────────┘ └──────────────┘ └──────────────┘             │
-└────────────────────────────┬────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                    FRONTEND (React + Vite)                  │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐    │
+│  │  Dashboard   │ │  Expenses    │ │  Tax Calculator  │    │
+│  └──────────────┘ └──────────────┘ └──────────────────┘    │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────────┐    │
+│  │   Reports    │ │  AI Guidance │ │    Settings      │    │
+│  └──────────────┘ └──────────────┘ └──────────────────┘    │
+└────────────────────────────┬─────────────────────────────────┘
                              │ (HTTPS/REST API)
-┌────────────────────────────▼────────────────────────────────────┐
-│                    API GATEWAY (Node.js)                        │
-│  ┌──────────────────────────────────────────────────────────┐  │
-│  │  JWT Auth │ Rate Limiting │ Request Validation │ Logging │  │
-│  └──────────────────────────────────────────────────────────┘  │
-└───┬──────────┬──────────────┬──────────────┬──────────────┬─────┘
-    │          │              │              │              │
-    │          │              │              │              │
-┌───▼──┐  ┌───▼──┐  ┌──────▼──┐  ┌──────▼──┐  ┌────────▼──┐
-│User  │  │Agent │  │ Phone   │  │Calendar │  │ Analytics│
-│Mgmt  │  │Mgmt  │  │  Agent  │  │  Sync   │  │ Engine   │
-└──┬───┘  └──┬───┘  └────┬────┘  └───┬─────┘  └─────┬────┘
-   │         │           │           │              │
-   └────────┬┴───┬───────┼───────────┴──────────────┘
-            │    │       │
-┌───────────▼────▼───────▼──────────────────────────────────────┐
-│          CORE SERVICES (Node.js Microservices)                │
+┌────────────────────────────▼─────────────────────────────────┐
+│                    API GATEWAY (Node.js)                     │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │  Auth │ Rate Limit │ Validation │ Error Handling      │ │
+│  └────────────────────────────────────────────────────────┘ │
+└───┬──────────┬──────────────┬──────────────┬────────────┬───┘
+    │          │              │              │            │
+┌───▼──┐  ┌───▼──┐  ┌──────▼──┐  ┌──────▼──┐  ┌─────▼──┐
+│Auth  │  │User  │  │Expense  │  │Tax      │  │Reports │
+│Mgmt  │  │Mgmt  │  │Tracking │  │Engine   │  │Engine  │
+└──┬───┘  └──┬───┘  └────┬────┘  └───┬─────┘  └────┬───┘
+   │         │           │           │             │
+   └────────┬┴───────────┼───────────┴─────────────┘
+            │            │
+┌───────────▼────────────▼──────────────────────────────────────┐
+│          CORE SERVICES (Node.js Services)                     │
 │                                                               │
-│  • User Service     • Agent Service   • Call Service         │
-│  • Billing Service  • Analytics       • Integration Service  │
-└────────────────────┬──────────────────────────────────────────┘
-                     │
-    ┌────────┬───────┼────────┬──────────┐
-    │        │       │        │          │
-┌───▼─┐ ┌───▼──┐ ┌──▼────┐ ┌─▼──────┐ ┌─▼──────┐
-│Redis│ │  DB  │ │ Cache │ │Storage │ │  Queue │
-└─────┘ └──┬───┘ └───────┘ └────────┘ └────────┘
+│  • Authentication Service  • Expense Processing             │
+│  • Tax Calculation Engine  • AI Guidance Service            │
+│  • Report Generator        • Currency Conversion            │
+│  • Billing Service         • Email Notifications            │
+└────────────────────────┬──────────────────────────────────────┘
+                         │
+    ┌────────┬───────────┼────────┬──────────┐
+    │        │           │        │          │
+┌───▼─┐ ┌───▼──┐ ┌──────▼──┐ ┌──▼──┐ ┌───▼──┐
+│Cache│ │  DB  │ │ Storage │ │ Queue │ │Claude│
+│Redis│ │PG    │ │S3/DO    │ │Bull  │ │API  │
+└─────┘ └──┬───┘ └─────────┘ └──────┘ └─────┘
            │
     ┌──────▼──────────────┐
     │  PostgreSQL (DO)    │
     │  • Users            │
-    │  • Agents           │
-    │  • Call Logs        │
-    │  • Analytics        │
+    │  • Expenses         │
+    │  • Tax Records      │
+    │  • Calculations     │
+    │  • Reports          │
+    │  • Subscriptions    │
     └─────────────────────┘
 
     ┌─────────────────────────┐
     │  External APIs          │
-    │  ├─ Plivo (Phone)      │
     │  ├─ Claude API         │
-    │  ├─ Google Cloud TTS   │
-    │  ├─ Google Calendar    │
     │  ├─ Stripe (Billing)   │
-    │  └─ Email Service      │
+    │  ├─ SendGrid (Email)   │
+    │  ├─ Tax API (IRS rates)│
+    │  └─ Currency rates     │
     └─────────────────────────┘
 ```
 
 ---
 
-## Tech Stack Details
+## Tech Stack (Optimized for Speed & Cost)
 
 ### Frontend
 - **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite (ultra-fast)
-- **CSS**: Tailwind CSS (utility-first)
-- **State Management**: Zustand (lightweight, <2KB)
-- **HTTP Client**: TanStack Query + Axios
-- **UI Components**: Shadcn/ui (headless)
+- **Build**: Vite (blazing fast, <1s startup)
+- **Styling**: Tailwind CSS
+- **State**: Zustand (lightweight)
+- **Forms**: React Hook Form + Zod
+- **Charts**: Recharts (for tax visualizations)
 - **Icons**: Lucide React
-- **Forms**: React Hook Form + Zod validation
-- **Charts**: Recharts (lightweight)
-- **Hosting**: Vercel (free for this project)
+- **Hosting**: Vercel (free tier)
 
-**Bundle Size Target**: <250KB gzipped
+**Bundle size target**: <200KB gzipped
 
 ### Backend
 - **Runtime**: Node.js 20 LTS
 - **Framework**: Express.js (minimal overhead)
-- **TypeScript**: Yes (type safety)
-- **Database Driver**: pg (PostgreSQL)
-- **Authentication**: JWT (jsonwebtoken)
-- **Environment**: dotenv
-- **HTTP Requests**: axios
-- **Job Queue**: Bull (Redis-backed)
-- **Logging**: Winston
-- **API Documentation**: Swagger/OpenAPI
+- **Language**: TypeScript
+- **Database**: PostgreSQL (DigitalOcean managed)
+- **Cache**: Redis (DigitalOcean managed)
+- **Auth**: JWT + bcrypt
+- **AI**: Anthropic Claude API
+- **Payments**: Stripe
+- **Email**: SendGrid
+- **Storage**: DigitalOcean Spaces (S3-compatible)
+- **Job Queue**: Bull (for async tax calculations)
 
 ### Infrastructure
-- **VPS**: DigitalOcean Droplet ($6/month - 1GB RAM)
-- **Database**: DigitalOcean PostgreSQL ($15/month - managed)
-- **Redis**: DigitalOcean Redis ($15/month - managed)
-- **Storage**: S3-compatible (Spaces, $5/month - 250GB)
-- **CDN**: DigitalOcean CDN (pay-per-use, ~$0.20/GB)
-- **Email**: SendGrid (100/day free)
-- **Domain**: Namecheap (~$0.50/month via bulk)
+- **VPS**: DigitalOcean Droplet ($6-12/month)
+- **Database**: PostgreSQL Managed ($15/month)
+- **Redis**: Redis Managed ($15/month)
+- **Storage**: DigitalOcean Spaces ($5/month)
+- **Email**: SendGrid (100/day free, paid after)
+- **Domain**: ~$0.50/month (bulk discount)
 
-**Total Infrastructure Cost: ~$45/month**
+**Total infrastructure:** ~$40/month
 
 ---
 
-## API Architecture
+## Architecture Patterns
 
-### Core API Endpoints
+### 1. Core Flow: Expense Tracking
+```
+User Input (form)
+  → Validation
+  → Store in DB
+  → Update cache
+  → Return to frontend
+  → Real-time dashboard update
+```
+
+### 2. Tax Calculation Flow
+```
+Trigger: User clicks "Calculate Tax"
+  → Fetch all expenses from DB
+  → Group by category (deductible, non-deductible)
+  → Calculate: Total Income - Deductions = Taxable Income
+  → Apply: State + Federal tax rates
+  → Queue: Send confirmation email
+  → Return: JSON with breakdown
+```
+
+### 3. AI Guidance Flow
+```
+User Question: "Can I deduct my home office?"
+  → Validate question
+  → Send to Claude API with context (user's business type, income)
+  → Claude returns: Explanation + deduction estimate
+  → Cache response (same question = instant reply)
+  → Log for analytics
+  → Return to user
+```
+
+### 4. Report Generation Flow
+```
+Trigger: User exports quarterly report
+  → Fetch data (last 3 months expenses)
+  → Calculate tax liability
+  → Generate PDF with:
+    - Expense breakdown
+    - Tax estimate
+    - Payment due dates
+    - AI recommendations
+  → Email to user
+  → Store in S3
+```
+
+---
+
+## API Design
+
+### Core Endpoints
 
 ```javascript
 // Authentication
@@ -110,64 +164,54 @@ POST   /api/auth/register
 POST   /api/auth/login
 POST   /api/auth/refresh-token
 POST   /api/auth/logout
-POST   /api/auth/forgot-password
+
+// Expenses (Main Feature)
+POST   /api/expenses                    // Add expense
+GET    /api/expenses                    // List expenses
+GET    /api/expenses/:id                // Get single
+PUT    /api/expenses/:id                // Update expense
+DELETE /api/expenses/:id                // Delete expense
+POST   /api/expenses/import-csv         // Bulk import
+
+// Categories
+GET    /api/categories                  // List tax categories
+POST   /api/categories/custom           // Add custom category
+
+// Tax Calculations
+POST   /api/tax/calculate-quarterly     // Quarterly estimate
+POST   /api/tax/calculate-annual        // Year-end calculation
+GET    /api/tax/quarterly-due-dates     // Payment schedule
+
+// AI Guidance
+POST   /api/ai/ask-tax-question         // Chat with AI
+GET    /api/ai/deduction-suggestions    // Smart suggestions
+POST   /api/ai/expense-categorize       // Auto-categorize
+
+// Reports
+GET    /api/reports/quarterly/:quarter  // Generate report
+GET    /api/reports/annual              // Annual summary
+GET    /api/reports/export/:format      // Export (PDF/CSV)
+
+// Dashboard
+GET    /api/dashboard/summary           // Key metrics
+GET    /api/dashboard/charts            // Chart data
 
 // User Management
 GET    /api/users/profile
 PUT    /api/users/profile
 POST   /api/users/change-password
-DELETE /api/users/account
 
-// Agents
-POST   /api/agents
-GET    /api/agents
-GET    /api/agents/:id
-PUT    /api/agents/:id
-DELETE /api/agents/:id
-POST   /api/agents/:id/test-call
-
-// Calls
-GET    /api/calls
-GET    /api/calls/:id
-GET    /api/calls/:id/transcript
-GET    /api/calls/:id/recording
-
-// Calendar
-POST   /api/calendar/connect
-GET    /api/calendar/events
-POST   /api/calendar/sync
-GET    /api/calendar/business-hours
-
-// Analytics
-GET    /api/analytics/overview
-GET    /api/analytics/calls
-GET    /api/analytics/performance
-GET    /api/analytics/export
-
-// API Keys
-POST   /api/api-keys
-GET    /api/api-keys
-DELETE /api/api-keys/:id
-PUT    /api/api-keys/:id/rotate
-
-// Webhooks
-POST   /api/webhooks
-GET    /api/webhooks
-PUT    /api/webhooks/:id
-DELETE /api/webhooks/:id
-
-// Billing
-GET    /api/billing/subscription
-POST   /api/billing/upgrade
-POST   /api/billing/cancel
-GET    /api/billing/invoices
+// Subscription
+GET    /api/subscription/current
+POST   /api/subscription/upgrade
+POST   /api/subscription/cancel
 ```
 
 ---
 
-## Database Schema
+## Database Schema (Simplified)
 
-### Users Table
+### users
 ```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -175,256 +219,235 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   first_name VARCHAR(100),
   last_name VARCHAR(100),
-  company_name VARCHAR(255),
+  business_type VARCHAR(100), -- freelancer, contractor, consultant
+  country VARCHAR(50) DEFAULT 'US',
+  state VARCHAR(50),
+  tax_id VARCHAR(50), -- SSN, EIN, etc
+  fiscal_year_start DATE,
+  currency VARCHAR(10) DEFAULT 'USD',
+  email_verified BOOLEAN DEFAULT FALSE,
+  stripe_customer_id VARCHAR(255),
   subscription_tier VARCHAR(50) DEFAULT 'free',
-  subscription_end_date TIMESTAMP,
-  phone_number VARCHAR(20),
-  verified BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_users_email ON users(email);
 ```
 
-### Agents Table
+### expenses
 ```sql
-CREATE TABLE agents (
+CREATE TABLE expenses (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(255) NOT NULL,
+  date DATE NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  category VARCHAR(100), -- office-supplies, software, mileage, meals, etc
   description TEXT,
-  voice_profile JSONB, -- { provider, language, accent, speed }
-  system_prompt TEXT,
-  business_type VARCHAR(100),
-  timezone VARCHAR(50),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### Calls Table
-```sql
-CREATE TABLE calls (
-  id SERIAL PRIMARY KEY,
-  agent_id INTEGER REFERENCES agents(id) ON DELETE CASCADE,
-  caller_number VARCHAR(20) NOT NULL,
-  duration_seconds INTEGER,
-  status VARCHAR(50), -- pending, ringing, in_progress, completed, failed
-  transcript TEXT,
-  recording_url VARCHAR(500),
-  sentiment_score FLOAT,
-  conversation_summary TEXT,
-  external_id VARCHAR(255), -- Plivo call ID
+  receipt_url VARCHAR(500),
+  is_deductible BOOLEAN DEFAULT TRUE,
+  tax_year INTEGER,
+  notes TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_calls_agent_id ON calls(agent_id);
-CREATE INDEX idx_calls_created_at ON calls(created_at);
+CREATE INDEX idx_expenses_user_id_date ON expenses(user_id, date);
+CREATE INDEX idx_expenses_category ON expenses(category);
+CREATE INDEX idx_expenses_tax_year ON expenses(tax_year);
 ```
 
-### Calendar Events Table
+### income_records
 ```sql
-CREATE TABLE calendar_events (
-  id SERIAL PRIMARY KEY,
-  agent_id INTEGER REFERENCES agents(id) ON DELETE CASCADE,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  start_time TIMESTAMP NOT NULL,
-  end_time TIMESTAMP NOT NULL,
-  external_id VARCHAR(255), -- Google Calendar ID
-  is_booked BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-### API Keys Table
-```sql
-CREATE TABLE api_keys (
+CREATE TABLE income_records (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  name VARCHAR(255) NOT NULL,
-  key_hash VARCHAR(255) UNIQUE NOT NULL,
-  last_used TIMESTAMP,
+  date DATE NOT NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  source VARCHAR(255), -- client name or project
+  notes TEXT,
+  currency VARCHAR(10),
+  exchange_rate DECIMAL(10,6),
+  amount_usd DECIMAL(10,2),
   created_at TIMESTAMP DEFAULT NOW(),
-  expires_at TIMESTAMP
+  updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_income_user_id_date ON income_records(user_id, date);
 ```
 
-### Webhooks Table
+### tax_calculations
 ```sql
-CREATE TABLE webhooks (
+CREATE TABLE tax_calculations (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  event_type VARCHAR(100) NOT NULL,
-  url VARCHAR(500) NOT NULL,
-  secret VARCHAR(255),
-  is_active BOOLEAN DEFAULT TRUE,
-  failed_attempts INTEGER DEFAULT 0,
-  last_attempted TIMESTAMP,
-  created_at TIMESTAMP DEFAULT NOW()
+  tax_year INTEGER,
+  quarter INTEGER, -- 1-4 for quarterly, NULL for annual
+  total_income DECIMAL(10,2),
+  total_deductions DECIMAL(10,2),
+  taxable_income DECIMAL(10,2),
+  estimated_tax DECIMAL(10,2),
+  federal_tax DECIMAL(10,2),
+  state_tax DECIMAL(10,2),
+  self_employment_tax DECIMAL(10,2),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE INDEX idx_tax_calculations_user_id ON tax_calculations(user_id);
 ```
 
-### Subscriptions Table
+### subscriptions
 ```sql
 CREATE TABLE subscriptions (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  stripe_subscription_id VARCHAR(255),
-  stripe_customer_id VARCHAR(255),
-  tier VARCHAR(50), -- starter, professional, enterprise
-  status VARCHAR(50), -- active, past_due, canceled
-  current_period_start TIMESTAMP,
-  current_period_end TIMESTAMP,
-  cancel_at TIMESTAMP,
+  plan VARCHAR(50), -- free, basic, premium
+  stripe_subscription_id VARCHAR(255) UNIQUE,
+  status VARCHAR(50), -- active, canceled, past_due
+  current_period_start DATE,
+  current_period_end DATE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-```
 
-### Usage Tracking Table
-```sql
-CREATE TABLE usage_tracking (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  month DATE,
-  minutes_used INTEGER DEFAULT 0,
-  calls_count INTEGER DEFAULT 0,
-  transcription_cost NUMERIC(10,4),
-  tts_cost NUMERIC(10,4),
-  phone_cost NUMERIC(10,4),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
+CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
 ```
 
 ---
 
-## Call Flow Architecture
+## Feature Breakdown
 
-### Incoming Call Flow
+### MVP Features (Weeks 1-4)
+- ✅ User registration/login
+- ✅ Add/edit/delete expenses
+- ✅ Categorize expenses (pre-built categories)
+- ✅ Simple tax calculation (total income - deductions)
+- ✅ View quarterly estimates
+- ✅ Basic dashboard
+
+### Early Stage Features (Weeks 5-8)
+- ✅ AI guidance (Claude integration)
+- ✅ Multi-currency support
+- ✅ CSV import
+- ✅ PDF export of reports
+- ✅ Email notifications
+
+### Growth Features (Month 3+)
+- ✅ Receipt scanning (OCR)
+- ✅ Bank account integration
+- ✅ Smart categorization (ML)
+- ✅ Tax filing integration
+- ✅ Professional reports
+
+---
+
+## Cost Breakdown
+
+### Monthly Operating Costs
 ```
-1. Phone Call → Plivo SIP Trunk
-2. Plivo → Webhook (POST /calls/incoming)
-3. Validate Agent & Business Hours
-4. Initialize Call Session
-5. Google Cloud TTS (Initial greeting)
-6. Customer speaks → Google Cloud Whisper (transcription)
-7. Transcription → Claude API (context understanding + response)
-8. Claude response → Google Cloud TTS (speech synthesis)
-9. Play audio to caller
-10. Repeat 6-9 until call ends
-11. Store call log + transcript + sentiment analysis
-12. Send webhook event to user
+DigitalOcean Droplet:          $6-12
+PostgreSQL Managed:             $15
+Redis Cache:                    $15
+DigitalOcean Spaces:            $5
+SendGrid Email:                 Free (100/day)
+Domain & SSL:                   ~$1
+Claude API (avg usage):         $30-50
+Stripe Processing (2.9%):       Variable
+─────────────────────────────────────
+TOTAL FIXED:                    ~$70
+
+Per user AI usage: ~$0.05-0.10/month
+Per user storage: ~$0.01/month
 ```
 
-### Agent Voice Profile Format
-```json
-{
-  "provider": "google-cloud",
-  "language": "en-US",
-  "voice_name": "Neural2-A",
-  "speed": 1.0,
-  "pitch": 0.0,
-  "business_type": "restaurant",
-  "system_prompt": "You are a friendly restaurant booking assistant. You help customers make reservations and answer questions about the restaurant."
-}
+### Revenue & Margins
+
+```
+Free Tier: 0 (lead gen)
+
+Basic: $15/month
+- Basic expense tracking
+- Tax calculation
+- 5 AI questions/month
+- CSV export
+- Target: 60% of users
+- Margin: 88%
+
+Premium: $30/month
+- Everything in Basic
+- Unlimited AI guidance
+- Receipt scanning
+- Multi-currency
+- Tax filing prep
+- Priority support
+- Target: 35% of users
+- Margin: 85%
+
+Pro: $99/month
+- Everything above
+- Bookkeeper collaboration
+- Advanced reporting
+- Tax optimization recommendations
+- API access
+- White-label option
+- Target: 5% of users
+- Margin: 80%
+
+Average ARPU (blended): $22/month
+Gross margin: 86%
+
+With 500 customers:
+Revenue: $11,000/month
+COGS: $1,500/month
+Gross profit: $9,500/month
 ```
 
 ---
 
-## Authentication & Security
+## Security & Compliance
 
-### JWT Token Structure
-```javascript
-{
-  "sub": user_id,
-  "email": "user@example.com",
-  "iat": 1234567890,
-  "exp": 1234567890 + 24h,
-  "role": "user"
-}
-```
+### Data Protection
+- ✅ All passwords hashed with bcrypt
+- ✅ TLS 1.3 for all traffic
+- ✅ Database encryption at rest
+- ✅ No sensitive data in logs
+- ✅ GDPR-compliant (data deletion on request)
 
-### API Key Generation
-- Generate 32-byte random token
-- Hash with SHA-256
-- Store only hash in database
-- Show plaintext only once on creation
+### Tax Information Security
+- ✅ Disclaimer: "Not tax advice"
+- ✅ User data never shared with tax authorities
+- ✅ Data retention: 7 years (IRS requirement)
+- ✅ PII encrypted in database
 
-### Rate Limiting
-```
-- Per IP: 100 requests/minute
-- Per API Key: 1000 requests/minute
-- Per User: 500 concurrent connections
-```
+### Compliance
+- ✅ Privacy policy (clear about data use)
+- ✅ Terms of service
+- ✅ GDPR compliance (EU users)
+- ✅ Liability insurance ($500/year)
 
 ---
 
-## Deployment Architecture
+## Scalability Plan
 
-### Environment Variables
-```
-# Database
-DATABASE_URL=postgresql://user:pass@db:5432/aiphone
+### Phase 1: MVP (Months 1-2)
+- Single server
+- Shared database
+- Basic caching
 
-# Redis
-REDIS_URL=redis://cache:6379
+### Phase 2: Growth (Months 3-6)
+- 2-3 API servers (load balanced)
+- Database replicas
+- Redis cluster
+- CDN for static assets
 
-# Third-party APIs
-PLIVO_AUTH_ID=xxx
-PLIVO_AUTH_TOKEN=xxx
-CLAUDE_API_KEY=xxx
-GOOGLE_CLOUD_TTS_KEY=xxx
-GOOGLE_CALENDAR_CLIENT_ID=xxx
-GOOGLE_CALENDAR_CLIENT_SECRET=xxx
-STRIPE_SECRET_KEY=xxx
-
-# App Config
-NODE_ENV=production
-JWT_SECRET=xxx
-PORT=3000
-BASE_URL=https://yourdomain.com
-```
-
-### CI/CD Pipeline
-```
-1. Code Push → GitHub
-2. Run Tests (Jest)
-3. Lint Code (ESLint)
-4. Build Docker Image
-5. Push to Registry
-6. Deploy to DigitalOcean
-7. Run Health Checks
-```
-
----
-
-## Cost Summary (First Year)
-
-| Item | Cost/Month | Notes |
-|------|-----------|-------|
-| DigitalOcean Droplet | $6 | 1GB RAM, shared CPU |
-| PostgreSQL Managed DB | $15 | 1GB storage |
-| Redis Cache | $15 | 250MB |
-| DigitalOcean Spaces | $5 | 250GB S3-compatible |
-| Domain | $0.50 | Bulk discount |
-| SendGrid Email | $0 | 100/day free tier |
-| Stripe (2.9% + $0.30) | Variable | Per transaction |
-| **Backend Total** | **$41.50** | Plus transaction fees |
-
-| Per 1000 Users | Cost/Month |
-|----------------|-----------|
-| Plivo Phone | $1,000 |
-| Claude API (10min/user avg) | $2,000 |
-| Google Cloud TTS | $150 |
-| Google Cloud Whisper | $100 |
-| Infrastructure | $50 |
-| Storage/Bandwidth | $100 |
-| **Total User Cost** | **$3,400** |
-| **Revenue (avg $50/user)** | **$50,000** |
-| **Gross Margin** | **93.2%** ✅ |
+### Phase 3: Scale (Month 6+)
+- Docker containers
+- Kubernetes orchestration
+- Database sharding by user_id
+- Microservices for heavy operations (PDF generation, email)
+- Multi-region (if international)
 
 ---
 
@@ -433,30 +456,53 @@ BASE_URL=https://yourdomain.com
 | Metric | Target |
 |--------|--------|
 | API Response Time | <200ms |
-| Call Setup Time | <3 seconds |
-| Speech Recognition Latency | <1 second |
-| TTS Synthesis Time | <2 seconds |
-| Database Query Time | <100ms |
+| Tax Calculation Time | <1 second |
+| Page Load Time | <2 seconds |
+| AI Guidance Response | <3 seconds |
+| PDF Generation | <5 seconds |
 | Uptime SLA | 99.5% |
-| Concurrent Calls | 100+ (with 1GB RAM) |
+| Concurrent Users | 100+ (easily) |
 
 ---
 
-## Scaling Strategy
+## Deployment & DevOps
 
-**Phase 1 (0-100 users):**
-- Single DigitalOcean Droplet
-- 1 PostgreSQL instance
-- 1 Redis instance
+### CI/CD Pipeline
+```
+1. Code Push → GitHub
+2. Run Tests (Jest)
+3. Lint Code (ESLint)
+4. Build Docker Image
+5. Deploy to DigitalOcean
+6. Health Checks
+7. Email notification
+```
 
-**Phase 2 (100-1000 users):**
-- 2-3 API servers (load balanced)
-- Database replicas
-- Dedicated Redis cluster
-- CDN for static assets
+### Environment Variables
+```
+DATABASE_URL=postgresql://...
+REDIS_URL=redis://...
+CLAUDE_API_KEY=xxx
+STRIPE_SECRET_KEY=xxx
+SENDGRID_API_KEY=xxx
+JWT_SECRET=xxx
+NODE_ENV=production
+```
 
-**Phase 3 (1000+ users):**
-- Kubernetes cluster
-- Auto-scaling
-- Multi-region deployment
-- Dedicated infrastructure for high-volume customers
+### Monitoring
+- Sentry for error tracking
+- Datadog for performance
+- Uptime monitoring (UptimeRobot)
+- Cloud logging for audit trail
+
+---
+
+## Why This Architecture Wins
+
+1. **Simple** - Single codebase, minimal services
+2. **Cheap** - $40/month base infrastructure
+3. **Fast** - No heavy dependencies, Vite builds in <1s
+4. **Scalable** - Easy to add servers/replicas
+5. **Reliable** - PostgreSQL is proven, Redis is battle-tested
+6. **Secure** - Standard practices, no novel infrastructure
+7. **Developer-friendly** - Node.js + TypeScript everywhere
