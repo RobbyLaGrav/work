@@ -1,0 +1,25 @@
+app = "freelancer-tax"
+primary_region = "ord"
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+VITE_API_URL = "https://freelancer-tax-api.fly.dev"
+
+[[services]]
+internal_port = 3000
+processes = ["app"]
+
+[[services.ports]]
+port = 80
+handlers = ["http"]
+
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 256

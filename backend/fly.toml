@@ -1,0 +1,41 @@
+app = "freelancer-tax-api"
+primary_region = "ord"
+
+[build]
+dockerfile = "Dockerfile"
+
+[env]
+NODE_ENV = "production"
+JWT_SECRET = "change-me-in-production"
+DATABASE_PATH = "/data/freelancer-tax.db"
+FRONTEND_URL = "https://freelancer-tax.fly.dev"
+
+[mounts]
+source = "data"
+destination = "/data"
+
+[[services]]
+internal_port = 3001
+processes = ["app"]
+
+[[services.ports]]
+port = 80
+handlers = ["http"]
+
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]
+
+[checks]
+  [checks.status]
+    type = "http"
+    interval = "10s"
+    timeout = "5s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+cpu_kind = "shared"
+cpus = 1
+memory_mb = 256
