@@ -1,0 +1,20 @@
+name: Deploy Backend to Railway
+
+on:
+  push:
+    branches:
+      - claude/freelancer-tax-ai-Enexd
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy to Railway
+        run: |
+          npm install -g @railway/cli
+          railway link --project freelancer-tax-ai --environment production
+          railway up --service backend
+        env:
+          RAILWAY_TOKEN: f8ce43b0-aa8b-4124-a793-02097ca51c46
